@@ -1,0 +1,63 @@
+This documentation covers the core CxD Protocol v2.0, implemented in high-performance C99. The system is architected to prioritize security-at-entry, mass-scalability, and citizen-privacy.
+
+CxD Protocol Architecture
+The backend is comprised of three primary modules designed to work in a linear, secure pipeline. Each module follows a strict .h (header) and .c (implementation) pattern.
+
+1. Vetting Gate (vetting_gate.h/c)
+
+Purpose: Prevents "Dishonest Developer" attacks and referendum spam through economic exhaustion.
+
+Gold-Equivalent Stake: Utilizes an off-chain Oracle (e.g., Chainlink) to determine the current value of 1 troy ounce of gold.
+
+Economic Barrier: Requires a stake that is expensive for an individual attacker but accessible to community-backed groups.
+
+The Slash Mechanic: If the Security Council or a vast majority of the community flags a proposal as malicious, the gold-equivalent stake is permanently burned, removing those tokens from the supply.
+
+2. Recursive SNARK Batcher (recursive_snark.h/c)
+
+Purpose: Achieves O(1) verification time for 1,000,000 users.
+
+Merkle-Tree Aggregation: Instead of verifying 1M individual signatures, the system builds a binary tree of Zero-Knowledge proofs.
+
+Compression Ratio: Reduces 1,000,000 proofs into a single Master Proof (≈256 bytes).
+
+Latency Optimization: Reduces chain-level verification time from several seconds to sub-0.1s.
+
+3. UBI Distribution Engine (ubi_distribution.h/c)
+
+Purpose: Ensures fair, anonymous, and singular daily claims.
+
+The Nullifier Protocol: Uses a cryptographic "one-way" value based on the user's secret key and the current day (Epoch).
+
+Anti-Double-Dipping: If a user tries to claim twice, the system identifies the duplicate Nullifier and rejects the claim without ever knowing who the user is.
+
+Treasury Integrity: Maintains a global state to prevent over-distribution.
+
+Technical Specifications & Compilation
+Data Types & Constraints
+
+Proof Size: 256 bytes (standard for Groth16/PlonK circuits).
+
+Identity: 32-byte hashed biometric hardware attestation.
+
+Epoch Length: 86,400 seconds (default 24-hour cycle).
+
+Compilation Guide
+
+To compile the core modules for testing on a local Linux/Unix environment:
+
+Bash
+# Compile the individual modules
+gcc -c vetting_gate.c recursive_snark.c ubi_distribution.c
+
+# Link into a testable binary
+gcc vetting_gate.o recursive_snark.o ubi_distribution.o main.c -o cxd_core
+
+# Run the protocol simulation
+./cxd_core
+Security Invariants
+Receipt-Freeness: Users cannot prove how they voted to third parties (prevents bribery).
+
+Hardware Binding: Identity is tied to the physical Secure Enclave of the mobile device (prevents cloud-based botnets).
+
+Auditability: While the voters are anonymous, the tally and the logic are 100% public and auditable via the blockchain.
